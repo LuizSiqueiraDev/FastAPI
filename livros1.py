@@ -44,3 +44,9 @@ async def atualizar_livro(nome_livro: str, titulo: str, autor: str):
     novos_dados = {'titulo': titulo, 'autor': autor}
     LIVROS[nome_livro] = novos_dados
     return novos_dados
+
+
+@app.delete("/deletar")
+async def deletar_livro(livro: str):
+    del LIVROS[livro]
+    return f'{livro} foi deletado.'
