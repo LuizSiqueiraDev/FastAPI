@@ -1,0 +1,1 @@
+uvicorn livros1:app --reload
