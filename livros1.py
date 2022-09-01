@@ -23,3 +23,17 @@ async def pular_livro(pular: str):
         del nova_lista[pular]
         return nova_lista
     return LIVROS
+
+
+@app.post("/adicionar")
+async def adicionar_livro(titulo: str, autor: str):
+    id_atual = 0
+
+    if len(LIVROS) > 0:
+        for livro in LIVROS:
+            proximo_id = int(livro.split("_")[-1])
+            if proximo_id > id_atual:
+                id_atual = proximo_id
+    
+    LIVROS[f'livro_{id_atual + 1}'] = {'titulo': titulo, 'autor': autor}
+    return LIVROS[f'livro_{id_atual + 1}']
