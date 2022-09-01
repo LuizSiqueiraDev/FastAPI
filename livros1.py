@@ -15,3 +15,11 @@ LIVROS = {
 async def mostrar_livros():
     return LIVROS
 
+
+@app.get("/pular")
+async def pular_livro(pular: str):
+    if pular:
+        nova_lista = LIVROS.copy()
+        del nova_lista[pular]
+        return nova_lista
+    return LIVROS
