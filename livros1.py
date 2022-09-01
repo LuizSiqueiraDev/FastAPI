@@ -37,3 +37,10 @@ async def adicionar_livro(titulo: str, autor: str):
     
     LIVROS[f'livro_{id_atual + 1}'] = {'titulo': titulo, 'autor': autor}
     return LIVROS[f'livro_{id_atual + 1}']
+
+
+@app.put("/atualizar")
+async def atualizar_livro(nome_livro: str, titulo: str, autor: str):
+    novos_dados = {'titulo': titulo, 'autor': autor}
+    LIVROS[nome_livro] = novos_dados
+    return novos_dados
