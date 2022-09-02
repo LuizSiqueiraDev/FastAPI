@@ -12,6 +12,16 @@ class Livro(BaseModel):
     descricao: str|None = Field(title="Descrição do livro", min_length=1, max_length=100)
     avaliacao: int = Field(gt=-1, lt=101)
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "78187ea0-6730-4e4b-a5cc-aad1622c7e06",
+                "titulo": "Título do livro",
+                "autor": "Nome do autor",
+                "descricao": "Uma descrição qualquer",
+                "avaliacao": 0
+            }
+        }
 
 LIVROS = []
 
