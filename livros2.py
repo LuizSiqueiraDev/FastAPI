@@ -23,13 +23,22 @@ class Livro(BaseModel):
             }
         }
 
+
 LIVROS = []
 
 
 @app.get("/")
-async def mostrar_livros():
+async def mostrar_livros(qtd_livros: int|None = None):
     if len(LIVROS) < 1:
         cadastrar_livros_sem_api()
+    
+    if qtd_livros and len(LIVROS) >= qtd_livros > 0:
+        posicao = 1
+        nova_lista = []
+        while posicao <= qtd_livros:
+            nova_lista.append(LIVROS[posicao - 1])
+            posicao = posicao + 1
+        return nova_lista
     return LIVROS
 
 
