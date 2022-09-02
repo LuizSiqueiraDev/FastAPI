@@ -16,7 +16,7 @@ async def mostrar_livros():
     return LIVROS
 
 
-@app.get("/pular")
+@app.get("/{pular}")
 async def pular_livro(pular: str):
     if pular:
         nova_lista = LIVROS.copy()
@@ -39,14 +39,14 @@ async def adicionar_livro(titulo: str, autor: str):
     return LIVROS[f'livro_{id_atual + 1}']
 
 
-@app.put("/atualizar")
+@app.put("/atualizar/{nome_livro}")
 async def atualizar_livro(nome_livro: str, titulo: str, autor: str):
     novos_dados = {'titulo': titulo, 'autor': autor}
     LIVROS[nome_livro] = novos_dados
     return novos_dados
 
 
-@app.delete("/deletar")
-async def deletar_livro(livro: str):
-    del LIVROS[livro]
-    return f'{livro} foi deletado.'
+@app.delete("/deletar/{nome_livro}")
+async def deletar_livro(nome_livro: str):
+    del LIVROS[nome_livro]
+    return f'{nome_livro} foi deletado.'
