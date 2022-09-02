@@ -55,6 +55,17 @@ async def adicionar_livro(livro: Livro):
     return livro
 
 
+@app.put("/{livro_id}")
+async def atualizar_livro(livro_id: UUID, livro: Livro):
+    indice = 0
+
+    for l in LIVROS:
+        indice += 1
+        if l.id == livro_id:
+            LIVROS[indice - 1] = livro
+            return LIVROS[indice - 1]
+
+
 def cadastrar_livros_sem_api():
     livro_1 = Livro(
         id="78187ea0-6730-4e4b-a5cc-aad1622c7e01", 
