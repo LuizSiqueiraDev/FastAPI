@@ -27,17 +27,24 @@ class Livro(BaseModel):
 LIVROS = []
 
 
+@app.get("/livro/{livro_id}")
+async def encontrar_livro(livro_id: UUID):
+    for livro in LIVROS:
+        if livro.id == livro_id:
+            return livro
+
+
 @app.get("/")
-async def mostrar_livros(qtd_livros: int|None = None):
+async def mostrar_livros(retornar_qtd: int|None = None):
     if len(LIVROS) < 1:
         cadastrar_livros_sem_api()
     
-    if qtd_livros and len(LIVROS) >= qtd_livros > 0:
-        posicao = 1
+    if retornar_qtd and len(LIVROS) >= retornar_qtd > 0:
+        indice = 1
         nova_lista = []
-        while posicao <= qtd_livros:
-            nova_lista.append(LIVROS[posicao - 1])
-            posicao = posicao + 1
+        while indice <= retornar_qtd:
+            nova_lista.append(LIVROS[indice - 1])
+            indice = indice + 1
         return nova_lista
     return LIVROS
 
