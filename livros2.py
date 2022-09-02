@@ -19,3 +19,9 @@ LIVROS = []
 @app.get("/")
 async def mostrar_livros():
     return LIVROS
+
+
+@app.post("/")
+async def criar_livro(livro: Livro):
+    LIVROS.append(livro)
+    return livro
