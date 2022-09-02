@@ -73,7 +73,7 @@ async def deletar_livro(livro_id: UUID):
         indice += 1
         if livro.id == livro_id:
             del LIVROS[indice - 1]
-            return f'ID:{livro_id} deletado.'
+            return f'ID: {livro_id} deletado.'
 
 
 def cadastrar_livros_sem_api():
