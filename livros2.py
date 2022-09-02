@@ -66,6 +66,16 @@ async def atualizar_livro(livro_id: UUID, livro: Livro):
             return LIVROS[indice - 1]
 
 
+@app.delete("/{livro_id}")
+async def deletar_livro(livro_id: UUID):
+    indice = 0
+    for livro in LIVROS:
+        indice += 1
+        if livro.id == livro_id:
+            del LIVROS[indice - 1]
+            return f'ID:{livro_id} deletado.'
+
+
 def cadastrar_livros_sem_api():
     livro_1 = Livro(
         id="78187ea0-6730-4e4b-a5cc-aad1622c7e01", 
