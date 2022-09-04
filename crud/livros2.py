@@ -94,8 +94,10 @@ async def adicionar_livro(livro: Livro):
 
 
 @app.post("/livros/login")
-async def login(nome_do_usuario: str = Form(), senha: str = Form()):
-    return {"nome_do_usuario": nome_do_usuario, "senha": senha}
+async def login(livro_id: int, nome_usuario: None|str = Header(None), senha: None|str = Header(None)):
+    if nome_usuario == "FastAPIUser" and senha == "test1234!":
+        return LIVROS[livro_id]
+    return "Usuário inválido!"
 
 
 @app.put("/{livro_id}")
