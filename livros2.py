@@ -1,8 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from uuid import UUID
+from starlette.responses import JSONResponse
 
 app = FastAPI()
+
+
+class ExcecaoDeNumeroNegativo(Exception):
+    def __init__(self, qtd_positiva):
+        self.qtd_positiva = qtd_positiva
+
 
 
 class Livro(BaseModel):
@@ -27,6 +34,13 @@ class Livro(BaseModel):
 LIVROS = []
 
 
+@app.exception_handler(ExcecaoDeNumeroNegativo)
+async def excecao_de_numero_negativo(reques: Request, excecao: ExcecaoDeNumeroNegativo):
+    return JSONResponse(
+        status_code=420,
+        content={"mensagem": f"O valor {excecao.qtd_positiva} é inválido, só valores positivos."}
+    )
+
 @app.get("/livro/{livro_id}")
 async def encontrar_livro(livro_id: UUID):
     for livro in LIVROS:
@@ -37,6 +51,9 @@ async def encontrar_livro(livro_id: UUID):
 
 @app.get("/")
 async def mostrar_livros(retornar_qtd: int|None = None):
+    if retornar_qtd and retornar_qtd < 0:
+        raise ExcecaoDeNumeroNegativo(qtd_positiva=retornar_qtd)
+    
     if len(LIVROS) < 1:
         cadastrar_livros_sem_api()
     
