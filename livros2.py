@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Form
 from pydantic import BaseModel, Field
 from uuid import UUID
 from starlette.responses import JSONResponse
@@ -85,6 +85,11 @@ async def mostrar_livros(retornar_qtd: int|None = None):
 async def adicionar_livro(livro: Livro):
     LIVROS.append(livro)
     return livro
+
+
+@app.post("/livros/login")
+async def login(nome_do_usuario: str = Form(), senha: str = Form()):
+    return {"nome_do_usuario": nome_do_usuario, "senha": senha}
 
 
 @app.put("/{livro_id}")
