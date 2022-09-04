@@ -1,3 +1,4 @@
+from sre_constants import MIN_UNTIL
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from uuid import UUID
@@ -7,16 +8,15 @@ app = FastAPI()
 
 
 class ExcecaoDeNumeroNegativo(Exception):
-    def __init__(self, qtd_positiva):
-        self.qtd_positiva = qtd_positiva
-
+    def __init__(self, qtd_negativa):
+        self.qtd_negativa = qtd_negativa
 
 
 class Livro(BaseModel):
     id: UUID
     titulo: str = Field(min_length=1)
     autor: str = Field(min_length=1, max_length=100)
-    descricao: str|None = Field(title="Descrição do livro", min_length=1, max_length=100)
+    descricao: None|str = Field(title="Descrição do livro", min_length=1, max_length=100)
     avaliacao: int = Field(gt=-1, lt=101)
 
     class Config:
@@ -31,6 +31,13 @@ class Livro(BaseModel):
         }
 
 
+class LivroSemAvaliacao(BaseModel):
+    id: UUID
+    titulo: str = Field(min_length=1, max_length=100)
+    autor: str
+    descricao: None|str = Field(None, title="Descrição", min_length=1, max_length=100)
+
+
 LIVROS = []
 
 
@@ -38,7 +45,7 @@ LIVROS = []
 async def excecao_de_numero_negativo(reques: Request, excecao: ExcecaoDeNumeroNegativo):
     return JSONResponse(
         status_code=420,
-        content={"mensagem": f"O valor {excecao.qtd_positiva} é inválido, só valores positivos."}
+        content={"mensagem": f"O valor {excecao.qtd_negativa} é inválido, só valores positivos."}
     )
 
 @app.get("/livro/{livro_id}")
@@ -49,10 +56,18 @@ async def encontrar_livro(livro_id: UUID):
     raise excecao_de_livro_nao_encontrado()
 
 
+@app.get("/livro/avaliacao/{livro_id}", response_model=LivroSemAvaliacao)
+async def encontrar_livro_sem_avaliacao(livro_id: UUID):
+    for livro in LIVROS:
+        if livro.id == livro_id:
+            return livro
+    raise excecao_de_livro_nao_encontrado()
+
+
 @app.get("/")
 async def mostrar_livros(retornar_qtd: int|None = None):
     if retornar_qtd and retornar_qtd < 0:
-        raise ExcecaoDeNumeroNegativo(qtd_positiva=retornar_qtd)
+        raise ExcecaoDeNumeroNegativo(qtd_negativa=retornar_qtd)
     
     if len(LIVROS) < 1:
         cadastrar_livros_sem_api()
