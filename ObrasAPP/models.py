@@ -7,6 +7,7 @@ class Obras(Base):
     __tablename__ = "obras"
     id = Column(Integer, primary_key=True, index=True)
     titulo = Column(String)
+    autor = Column(String)
     descricao = Column(String)
     prioridade = Column(Integer)
     lido = Column(Boolean, default=False)
