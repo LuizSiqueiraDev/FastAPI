@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from uuid import UUID
 
@@ -32,6 +32,7 @@ async def encontrar_livro(livro_id: UUID):
     for livro in LIVROS:
         if livro.id == livro_id:
             return livro
+    raise excecao_de_livro_nao_encontrado()
 
 
 @app.get("/")
@@ -64,6 +65,7 @@ async def atualizar_livro(livro_id: UUID, livro: Livro):
         if l.id == livro_id:
             LIVROS[indice - 1] = livro
             return LIVROS[indice - 1]
+    raise excecao_de_livro_nao_encontrado()
 
 
 @app.delete("/{livro_id}")
@@ -74,6 +76,15 @@ async def deletar_livro(livro_id: UUID):
         if livro.id == livro_id:
             del LIVROS[indice - 1]
             return f'ID: {livro_id} deletado.'
+    raise excecao_de_livro_nao_encontrado()
+
+
+def excecao_de_livro_nao_encontrado():
+    return HTTPException(
+        status_code=404,
+        detail="Livro não encontrado.",
+        headers={"X-Header-Error": "UUID não contrado."}
+    )
 
 
 def cadastrar_livros_sem_api():
