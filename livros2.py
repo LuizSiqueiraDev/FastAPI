@@ -1,5 +1,4 @@
-from sre_constants import MIN_UNTIL
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from uuid import UUID
 from starlette.responses import JSONResponse
@@ -82,7 +81,7 @@ async def mostrar_livros(retornar_qtd: int|None = None):
     return LIVROS
 
 
-@app.post("/")
+@app.post("/", status_code=status.HTTP_201_CREATED)
 async def adicionar_livro(livro: Livro):
     LIVROS.append(livro)
     return livro
