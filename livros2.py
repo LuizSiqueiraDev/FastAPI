@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status, Form
+from fastapi import FastAPI, HTTPException, Request, status, Form, Header
 from pydantic import BaseModel, Field
 from uuid import UUID
 from starlette.responses import JSONResponse
@@ -46,6 +46,12 @@ async def excecao_de_numero_negativo(reques: Request, excecao: ExcecaoDeNumeroNe
         status_code=420,
         content={"mensagem": f"O valor {excecao.qtd_negativa} é inválido, só valores positivos."}
     )
+
+
+@app.get("/header")
+async def ler_header(header: None|str = Header(None)):
+    return {"Header": header}
+
 
 @app.get("/livro/{livro_id}")
 async def encontrar_livro(livro_id: UUID):
