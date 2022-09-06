@@ -1,4 +1,3 @@
-from ast import AugStore
 from fastapi import FastAPI, Depends, HTTPException
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -31,7 +30,7 @@ def excecao_http():
 
 
 def status_de_confirmacao():
-    return {'status': 200, 'operação': 'Sucedido'}
+    return {'status': 200, 'operação': 'Sucedida'}
 
 
 @app.get("/")
@@ -77,6 +76,20 @@ async def atualizar_livro(livro_id: int, livro: Livro, db: Session = Depends(obt
     modelo.lido = livro.lido
 
     db.add(modelo)
+    db.commit()
+
+    return status_de_confirmacao()
+
+
+@app.delete("/{livro_id}")
+async def deletar_livro(livro_id: int, db: Session = Depends(obter_db)):
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+
+    if modelo is None:
+        raise excecao_http()
+    
+    db.query(models.Livros).filter(models.Livros.id == livro_id).delete()
+
     db.commit()
 
     return status_de_confirmacao()
