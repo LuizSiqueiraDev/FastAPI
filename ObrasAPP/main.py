@@ -1,3 +1,4 @@
+from ast import AugStore
 from fastapi import FastAPI, Depends, HTTPException
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -50,6 +51,25 @@ async def consultar_livro(livro_id: int, db: Session = Depends(obter_db)):
 @app.post("/")
 async def adicionar_livro(livro: Livro, db: Session = Depends(obter_db)):
     modelo = models.Livros()
+    modelo.titulo = livro.titulo
+    modelo.autor = livro.autor
+    modelo.descricao = livro.descricao
+    modelo.prioridade = livro.prioridade
+    modelo.lido = livro.lido
+
+    db.add(modelo)
+    db.commit()
+
+    return status_de_confirmacao()
+
+
+@app.put("/{livro_id}")
+async def atualizar_livro(livro_id: int, livro: Livro, db: Session = Depends(obter_db)):
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+
+    if modelo is None:
+        raise excecao_http()
+    
     modelo.titulo = livro.titulo
     modelo.autor = livro.autor
     modelo.descricao = livro.descricao
