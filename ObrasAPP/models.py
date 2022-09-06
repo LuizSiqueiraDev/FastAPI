@@ -3,8 +3,8 @@ from sqlalchemy import Boolean, Column, Integer, String
 from database import Base
 
 
-class Obras(Base):
-    __tablename__ = "obras"
+class Livros(Base):
+    __tablename__ = "livros"
     id = Column(Integer, primary_key=True, index=True)
     titulo = Column(String)
     autor = Column(String)
