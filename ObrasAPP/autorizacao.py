@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -72,14 +72,10 @@ async def obter_usuario_atual(token: str = Depends(oauth2_bearer)):
         apelido: str = payload.get("sub")
         usuario_id: int = payload.get("id")
         if apelido is None or usuario_id is None:
-            raise excecao_http()
+            raise obter_excecao_do_usuario()
         return {"apelido": apelido, "id": usuario_id}
     except JWTError:
-        raise excecao_http() 
-
-
-def excecao_http():
-    return HTTPException(status_code=404, detail="Usuário'' não encontrado.")
+        raise obter_excecao_do_usuario() 
 
 
 @app.post("/criar/usuario")
@@ -104,8 +100,28 @@ async def login_para_acesso_de_token(dados_form: OAuth2PasswordRequestForm = Dep
     usuario = autenticar_usuario(dados_form.username, dados_form.password, db)
 
     if not usuario:
-        raise excecao_http()
+        raise token_de_excecao()
     expirar_token = timedelta(minutes=30)
     token = criar_acesso_token(usuario.apelido, usuario.id)
 
     return {"token": token}
+
+
+#Exeções
+
+def obter_excecao_do_usuario():
+    excecao_de_credencial = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Não foi possível validar as credenciais.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    return excecao_de_credencial
+
+
+def token_de_excecao():
+    resposta_de_token_de_excecao = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Usuário ou senha incorreta",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    return resposta_de_token_de_excecao
