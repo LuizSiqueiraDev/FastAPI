@@ -3,10 +3,14 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 import models
+from routers import autorizacao
+from routers.autorizacao import obter_excecao_do_usuario, obter_usuario_atual
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
+
+app.include_router(autorizacao.router)
 
 
 def obter_db():
@@ -38,9 +42,20 @@ async def mostrar_livros(db: Session = Depends(obter_db)):
     return db.query(models.Livros).all()
 
 
-@app.get("/livros/{livro_id}")
-async def consultar_livro(livro_id: int, db: Session = Depends(obter_db)):
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+@app.get("/livros/usuario")
+async def mostrar_lista_do_usuario(usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+    if usuario is None:
+        raise obter_excecao_do_usuario()
+    return db.query(models.Livros).filter(models.Livros.dono_id == usuario.get("id")).all()
+
+
+
+@app.get("/livro/{livro_id}")
+async def consultar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+    if usuario is None:
+        raise obter_excecao_do_usuario()
+    
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
 
     if modelo is not None:
         return modelo
@@ -48,13 +63,17 @@ async def consultar_livro(livro_id: int, db: Session = Depends(obter_db)):
 
 
 @app.post("/")
-async def adicionar_livro(livro: Livro, db: Session = Depends(obter_db)):
+async def adicionar_livro(livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+    if usuario is None: 
+        raise obter_excecao_do_usuario()
+    
     modelo = models.Livros()
     modelo.titulo = livro.titulo
     modelo.autor = livro.autor
     modelo.descricao = livro.descricao
     modelo.prioridade = livro.prioridade
     modelo.lido = livro.lido
+    modelo.dono_id = usuario.get("id")
 
     db.add(modelo)
     db.commit()
@@ -63,8 +82,11 @@ async def adicionar_livro(livro: Livro, db: Session = Depends(obter_db)):
 
 
 @app.put("/{livro_id}")
-async def atualizar_livro(livro_id: int, livro: Livro, db: Session = Depends(obter_db)):
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+async def atualizar_livro(livro_id: int, livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+    if usuario is None:
+        raise obter_excecao_do_usuario()
+
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
 
     if modelo is None:
         raise excecao_http()
@@ -82,8 +104,11 @@ async def atualizar_livro(livro_id: int, livro: Livro, db: Session = Depends(obt
 
 
 @app.delete("/{livro_id}")
-async def deletar_livro(livro_id: int, db: Session = Depends(obter_db)):
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+async def deletar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+    if usuario is None:
+        raise obter_excecao_do_usuario()
+
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
 
     if modelo is None:
         raise excecao_http()

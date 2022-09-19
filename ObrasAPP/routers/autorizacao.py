@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+import sys
+sys.path.append("..")
+
+from fastapi import Depends, HTTPException, status, APIRouter
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -20,7 +23,7 @@ class CriarUsuario(BaseModel):
     senha: str
 
 
-app = FastAPI()
+router = APIRouter()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -78,7 +81,7 @@ async def obter_usuario_atual(token: str = Depends(oauth2_bearer)):
         raise obter_excecao_do_usuario() 
 
 
-@app.post("/criar/usuario")
+@router.post("/criar/usuario")
 async def criar_usuario(criar_usuario: CriarUsuario, db: Session = Depends(obter_db)):
     modelo = models.Usuarios()
     modelo.email = criar_usuario.email
@@ -95,7 +98,7 @@ async def criar_usuario(criar_usuario: CriarUsuario, db: Session = Depends(obter
     db.commit()
 
 
-@app.post("/token")
+@router.post("/token")
 async def login_para_acesso_de_token(dados_form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(obter_db)):
     usuario = autenticar_usuario(dados_form.username, dados_form.password, db)
 
@@ -121,7 +124,7 @@ def obter_excecao_do_usuario():
 def token_de_excecao():
     resposta_de_token_de_excecao = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Usuário ou senha incorreta",
+        detail="Usuário ou senha incorreto",
         headers={"WWW-Authenticate": "Bearer"},
     )
     return resposta_de_token_de_excecao

@@ -1,1 +1,1 @@
-uvicorn autorizacao:app --reload
+uvicorn main:app --reload
