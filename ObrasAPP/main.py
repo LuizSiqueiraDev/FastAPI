@@ -1,120 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException
-from database import engine, SessionLocal
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
+from fastapi import FastAPI
+from database import engine
 import models
-from routers import autorizacao
-from routers.autorizacao import obter_excecao_do_usuario, obter_usuario_atual
+from routers import autorizacao, livros, usuarios
+from compania import companiasapi
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
 app.include_router(autorizacao.router)
-
-
-def obter_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-class Livro(BaseModel):
-    titulo: str
-    autor: str
-    descricao: str|None = None
-    prioridade: int = Field(gt=0, lt=6, description="Prioridade entre 1-5")
-    lido: bool = Field(default=False)
-
-
-def excecao_http():
-    return HTTPException(status_code=404, detail="Livro não encontrado.")
-
-
-def status_de_confirmacao():
-    return {'status': 200, 'operação': 'Sucedida'}
-
-
-@app.get("/")
-async def mostrar_livros(db: Session = Depends(obter_db)):
-    return db.query(models.Livros).all()
-
-
-@app.get("/livros/usuario")
-async def mostrar_lista_do_usuario(usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-    return db.query(models.Livros).filter(models.Livros.dono_id == usuario.get("id")).all()
-
-
-
-@app.get("/livro/{livro_id}")
-async def consultar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-    
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is not None:
-        return modelo
-    raise excecao_http()
-
-
-@app.post("/")
-async def adicionar_livro(livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None: 
-        raise obter_excecao_do_usuario()
-    
-    modelo = models.Livros()
-    modelo.titulo = livro.titulo
-    modelo.autor = livro.autor
-    modelo.descricao = livro.descricao
-    modelo.prioridade = livro.prioridade
-    modelo.lido = livro.lido
-    modelo.dono_id = usuario.get("id")
-
-    db.add(modelo)
-    db.commit()
-
-    return status_de_confirmacao()
-
-
-@app.put("/{livro_id}")
-async def atualizar_livro(livro_id: int, livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is None:
-        raise excecao_http()
-    
-    modelo.titulo = livro.titulo
-    modelo.autor = livro.autor
-    modelo.descricao = livro.descricao
-    modelo.prioridade = livro.prioridade
-    modelo.lido = livro.lido
-
-    db.add(modelo)
-    db.commit()
-
-    return status_de_confirmacao()
-
-
-@app.delete("/{livro_id}")
-async def deletar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is None:
-        raise excecao_http()
-    
-    db.query(models.Livros).filter(models.Livros.id == livro_id).delete()
-
-    db.commit()
-
-    return status_de_confirmacao()
+app.include_router(usuarios.router)
+app.include_router(livros.router)
+app.include_router(companiasapi.router)

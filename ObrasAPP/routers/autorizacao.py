@@ -1,5 +1,5 @@
 import sys
-sys.path.append("..")
+sys.path.append(".. ")
 
 from fastapi import Depends, HTTPException, status, APIRouter
 from pydantic import BaseModel
@@ -23,7 +23,11 @@ class CriarUsuario(BaseModel):
     senha: str
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/autorizacao",
+    tags=["Autorização"],
+    responses={401: {"usuario": "Não autorizado"}}
+)
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
