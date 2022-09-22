@@ -21,6 +21,7 @@ class CriarUsuario(BaseModel):
     nome: str
     sobrenome: str
     senha: str
+    telefone: str|None
 
 
 router = APIRouter(
@@ -92,6 +93,7 @@ async def criar_usuario(criar_usuario: CriarUsuario, db: Session = Depends(obter
     modelo.apelido = criar_usuario.apelido
     modelo.nome = criar_usuario.nome
     modelo.sobrenome = criar_usuario.sobrenome
+    modelo.telefone = criar_usuario.telefone
 
     senha_hash = obter_senha_hash(criar_usuario.senha)
     modelo.senha_hashed = senha_hash
