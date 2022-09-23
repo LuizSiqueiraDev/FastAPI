@@ -1,12 +1,14 @@
 import sys
 sys.path.append("..")
 
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, Request
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 import models
 from routers.autorizacao import obter_excecao_do_usuario, obter_usuario_atual
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(
     prefix="/livros",
@@ -15,6 +17,8 @@ router = APIRouter(
 )
 
 models.Base.metadata.create_all(bind=engine)
+
+templates = Jinja2Templates(directory="templates")
 
 
 def obter_db():
@@ -39,6 +43,11 @@ def excecao_http():
 
 def status_de_confirmacao():
     return {'status': 200, 'operação': 'Sucedida'}
+
+
+@router.get("/test")
+async def test(request: Request):
+    return templates.TemplateResponse('editar-livro.html', {"request": request})
 
 
 @router.get("/")
