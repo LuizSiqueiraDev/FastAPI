@@ -1,28 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/livro/css/base.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/livro/css/bootstrap.css') }}">
-	<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-acale=1, shrink-to-fit=no">
-	<title>Obras Literárias</title>
-</head>
-<body>
-<div>
-    <nav class="navbar navbar-expand-md navbar-dark main-color fixed-top">
-        <a class="navbar-brand" href="#">Obras App</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ui class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Home</a>
-                </li>
-            </ui>
-        </div>
-    </nav>
-</div>
+{% include 'layout.html' %}
 
 <div class="container">
     <div class="card">
@@ -33,24 +9,24 @@
             <form>
                 <div class="form-group">
                     <label>Título</label>
-                    <input type="text" class="form-control" name="titulo" required>
+                    <input type="text" class="form-control" name="titulo" value="{{livro.titulo}}" required>
                 </div>
                 <div class="form-group">
                     <label>Autor</label>
-                    <textarea name="autor" class="form-control" rows="1" required></textarea>
+                    <textarea name="autor" class="form-control" rows="1" required>{{livro.autor}}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Descrição</label>
-                    <textarea name="descricao" class="form-control" rows="3" required></textarea>
+                    <textarea name="descricao" class="form-control" rows="3" required>{{livro.descricao}}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Prioridade</label>
                     <select name="prioridade" class="form-control">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                        <option>4</option>
-                        <option>5</option>
+                        <option {% if livro.prioridade == 1 %} selected="selected" {% endif %}>1</option>
+                        <option {% if livro.prioridade == 2 %} selected="selected" {% endif %}>2</option>
+                        <option {% if livro.prioridade == 3 %} selected="selected" {% endif %}>3</option>
+                        <option {% if livro.prioridade == 4 %} selected="selected" {% endif %}>4</option>
+                        <option {% if livro.prioridade == 5 %} selected="selected" {% endif %}>5</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Editar</button>
@@ -59,9 +35,3 @@
         </div>
     </div>
 </div>
-
-<script src="{{ url_for('static', path='/livro/js/jquery-slim.js') }}"></script>
-<script src="{{ url_for('static', path='/livro/popper.js') }}"></script>
-<script src="{{ url_for('static', path='/livro/js/bootstrap.js') }}"></script>
-</body>
-</html>

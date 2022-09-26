@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".. ")
 
-from fastapi import Depends, HTTPException, status, APIRouter, Request
+from fastapi import Depends, HTTPException, status, APIRouter
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -10,13 +10,9 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 import models
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 
 SECRET_KEY = "klgh6azydegwd288to79i3vtht8wp7"
 ALGORITHM = "HS256"
-
-templates = Jinja2Templates(directory="templates")
 
 
 class CriarUsuario(BaseModel):
@@ -118,16 +114,6 @@ async def login_para_acesso_de_token(dados_form: OAuth2PasswordRequestForm = Dep
     token = criar_acesso_token(usuario.apelido, usuario.id)
 
     return {"token": token}
-
-
-@router.get("/", response_class=HTMLResponse)
-async def pagina_de_alutenticacao(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@router.get("/registrar", response_class=HTMLResponse)
-async def registrar(request: Request):
-    return templates.TemplateResponse("registrar.html", {"request": request})
 
 
 #Exeções

@@ -1,0 +1,45 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Registrar
+        </div>
+        <div class="card-body">
+            <form>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Apelido</label>
+                        <input type="text" class="form-control" name="apelido" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>E-mail</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Nome</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Sobrenome</label>
+                        <input type="text" class="form-control" name="sobrenome" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                        <label>Senha</label>
+                        <input type="senha" class="form-control" name="senha" required>
+                </div>
+                <div class="form-group">
+                        <label>Verificar Senha</label>
+                        <input type="senha" class="form-control" name="senha2" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Registrar</button>
+            </form>
+        </div>
+        <div class="card-footer text-muted">
+            <a href="#">Já tenho uma conta!</a>
+        </div>
+    </div>
+</div>

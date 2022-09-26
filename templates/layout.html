@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/livro/css/base.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/livro/css/bootstrap.css') }}">
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-acale=1, shrink-to-fit=no">
+	<title>Obras Literárias</title>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+{% block content %}
+
+{% endblock %}
+
+<script src="{{ url_for('static', path='/livro/js/jquery-slim.js') }}"></script>
+<script src="{{ url_for('static', path='/livro/popper.js') }}"></script>
+<script src="{{ url_for('static', path='/livro/js/bootstrap.js') }}"></script>
+</body>
+</html>

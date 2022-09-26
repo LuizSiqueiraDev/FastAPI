@@ -1,7 +1,9 @@
 import sys
 sys.path.append("..")
 
-from fastapi import Depends, HTTPException, APIRouter, Request
+from starlette import status
+from starlette.responses import RedirectResponse
+from fastapi import Depends, HTTPException, APIRouter, Request, Form
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -29,105 +31,36 @@ def obter_db():
         db.close()
 
 
-class Livro(BaseModel):
-    titulo: str
-    autor: str
-    descricao: str|None = None
-    prioridade: int = Field(gt=0, lt=6, description="Prioridade entre 1-5")
-    lido: bool = Field(default=False)
+@router.get("/", response_class=HTMLResponse)
+async def mostrar_usuarios(request: Request, db: Session = Depends(obter_db)):
+    livros = db.query(models.Livros).filter(models.Livros.dono_id == 1).all()
+
+    return templates.TemplateResponse("home.html", {"request": request, "livros": livros})
 
 
-def excecao_http():
-    return HTTPException(status_code=404, detail="Livro não encontrado.")
+@router.get("/adicionar-livro", response_class=HTMLResponse)
+async def adicionar_novo_livro(request: Request):
+    return templates.TemplateResponse("adicionar-livro.html", {"request": request})
 
 
-def status_de_confirmacao():
-    return {'status': 200, 'operação': 'Sucedida'}
+@router.post("/adicionar-livro", response_class=HTMLResponse)
+async def adicionar_livro(request: Request, titulo: str = Form(), autor: str = Form(), descricao: str = Form(), prioridade: int = Form(), db: Session = Depends(obter_db)):
+    livro_modelo = models.Livros()
+    livro_modelo.titulo = titulo
+    livro_modelo.autor = autor
+    livro_modelo.descricao = descricao
+    livro_modelo.prioridade = prioridade
+    livro_modelo.lido = False
+    livro_modelo.dono_id = 1
 
-
-@router.get("/test")
-async def test(request: Request):
-    return templates.TemplateResponse('editar-livro.html', {"request": request})
-
-
-@router.get("/")
-async def mostrar_livros(db: Session = Depends(obter_db)):
-    return db.query(models.Livros).all()
-
-
-@router.get("/usuario")
-async def mostrar_lista_do_usuario(usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-    return db.query(models.Livros).filter(models.Livros.dono_id == usuario.get("id")).all()
-
-
-
-@router.get("/{livro_id}")
-async def consultar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-    
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is not None:
-        return modelo
-    raise excecao_http()
-
-
-@router.post("/")
-async def adicionar_livro(livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None: 
-        raise obter_excecao_do_usuario()
-    
-    modelo = models.Livros()
-    modelo.titulo = livro.titulo
-    modelo.autor = livro.autor
-    modelo.descricao = livro.descricao
-    modelo.prioridade = livro.prioridade
-    modelo.lido = livro.lido
-    modelo.dono_id = usuario.get("id")
-
-    db.add(modelo)
+    db.add(livro_modelo)
     db.commit()
 
-    return status_de_confirmacao()
+    return RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)
 
 
-@router.put("/{livro_id}")
-async def atualizar_livro(livro_id: int, livro: Livro, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
+@router.get("/editar-livro/{livro_id}", response_class=HTMLResponse)
+async def editar_livro(request: Request, livro_id: int, db: Session = Depends(obter_db)):
+    livro = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
 
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is None:
-        raise excecao_http()
-    
-    modelo.titulo = livro.titulo
-    modelo.autor = livro.autor
-    modelo.descricao = livro.descricao
-    modelo.prioridade = livro.prioridade
-    modelo.lido = livro.lido
-
-    db.add(modelo)
-    db.commit()
-
-    return status_de_confirmacao()
-
-
-@router.delete("/{livro_id}")
-async def deletar_livro(livro_id: int, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-
-    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == usuario.get("id")).first()
-
-    if modelo is None:
-        raise excecao_http()
-    
-    db.query(models.Livros).filter(models.Livros.id == livro_id).delete()
-
-    db.commit()
-
-    return status_de_confirmacao()
+    return templates.TemplateResponse("editar-livro.html", {"request": request, "livro": livro})
