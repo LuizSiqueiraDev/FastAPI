@@ -1,7 +1,8 @@
 import sys
 sys.path.append(".. ")
 
-from fastapi import Depends, HTTPException, status, APIRouter, Request
+from starlette.responses import RedirectResponse
+from fastapi import Depends, HTTPException, status, APIRouter, Request, Response
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -33,6 +34,19 @@ router = APIRouter(
     tags=["Autorização"],
     responses={401: {"usuario": "Não autorizado"}}
 )
+
+
+class LoginForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.username: str|None
+        self.password: str|None
+    
+    async def autorizacao_form(self):
+        form = await self.request.form()
+        self.username = form.get("email")
+        self.password = form.get("senha")
+
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -109,21 +123,40 @@ async def criar_usuario(criar_usuario: CriarUsuario, db: Session = Depends(obter
 
 
 @router.post("/token")
-async def login_para_acesso_de_token(dados_form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(obter_db)):
+async def login_para_acesso_de_token(response: Response, dados_form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(obter_db)):
     usuario = autenticar_usuario(dados_form.username, dados_form.password, db)
 
     if not usuario:
-        raise token_de_excecao()
-    expirar_token = timedelta(minutes=30)
+        return False
+    expirar_token = timedelta(minutes=60)
     token = criar_acesso_token(usuario.apelido, usuario.id)
 
-    return {"token": token}
+    response.set_cookie(key="criar_acesso_token", value=token, httponly=True)
+
+    return True
 
 
 @router.get("/", response_class=HTMLResponse)
-async def pagina_de_alutenticacao(request: Request):
+async def pagina_de_autenticacao(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+
+@router.post("/", response_class=HTMLResponse)
+async def login(request: Request, db: Session = Depends(obter_db)):
+    try:
+        formulario = LoginForm(request)
+        await formulario.autorizacao_form()
+        response = RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)
+
+        validar_cookie = await login_para_acesso_de_token(response=response, dados_form=formulario, db=db)
+
+        if not validar_cookie:
+            mensagem = "Apelido ou senha incorreto"
+            return templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
+        return response
+    except HTTPException:
+        mensagem = "Erro desconhecido"
+        return templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
 
 @router.get("/registrar", response_class=HTMLResponse)
 async def registrar(request: Request):

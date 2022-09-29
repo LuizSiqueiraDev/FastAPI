@@ -6,7 +6,20 @@
             Login
         </div>
         <div class="card-body">
-            <form>
+
+            {% if mensagem %}
+            {% if mensagem == 'Logout sucedido' or mensagem == 'Usuário criado com sucesso' %}
+            <div class="alert alert-success" role="alert">
+                {{ mensagem }}
+            </div>
+            {% else %}
+            <div class="alert alert-danger" role="alert">
+                {{ mensagem }}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <form method="POST" action="/autorizacao">
                 <div class="form-group">
                     <label>Apelido</label>
                     <input type="text" class="form-control" name="email" required>

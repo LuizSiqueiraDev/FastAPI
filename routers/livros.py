@@ -3,10 +3,10 @@ sys.path.append("..")
 
 from starlette import status
 from starlette.responses import RedirectResponse
-from fastapi import Depends, HTTPException, APIRouter, Request, Form
+from fastapi import Depends, APIRouter, Request, Form
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
+from pydantic import Field
 import models
 from routers.autorizacao import obter_excecao_do_usuario, obter_usuario_atual
 from fastapi.responses import HTMLResponse
@@ -64,3 +64,43 @@ async def editar_livro(request: Request, livro_id: int, db: Session = Depends(ob
     livro = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
 
     return templates.TemplateResponse("editar-livro.html", {"request": request, "livro": livro})
+
+
+@router.post("/editar-livro/{livro_id}", response_class=HTMLResponse)
+async def editar_livro_commit(livro_id: int, titulo: str = Form(), autor: str = Form(), descricao: str = Form(), prioridade: int = Form(), db: Session = Depends(obter_db)):
+    modelo_livro = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+
+    modelo_livro.titulo = titulo
+    modelo_livro.autor = autor
+    modelo_livro.descricao = descricao
+    modelo_livro.prioridade = prioridade
+
+    db.add(modelo_livro)
+    db.commit()
+
+    return RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/deletar/{livro_id}")
+async def deletar_livro(livro_id: int, db: Session = Depends(obter_db)):
+    modelo = db.query(models.Livros).filter(models.Livros.id == livro_id).filter(models.Livros.dono_id == 1).first()
+
+    if modelo is None:
+        return RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)
+    
+    db.query(models.Livros).filter(models.Livros.id == livro_id).delete()
+    db.commit()
+
+    return RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/lido/{livro_id}", response_class=HTMLResponse)
+async def livro_lido(livro_id: int, db: Session = Depends(obter_db)):
+    livro = db.query(models.Livros).filter(models.Livros.id == livro_id).first()
+
+    livro.lido = not livro.lido
+
+    db.add(livro)
+    db.commit()
+
+    return RedirectResponse(url="/livros", status_code=status.HTTP_302_FOUND)

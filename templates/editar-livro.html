@@ -6,7 +6,7 @@
             Editar livro
         </div>
         <div class="card-body">
-            <form>
+            <form method="POST">
                 <div class="form-group">
                     <label>Título</label>
                     <input type="text" class="form-control" name="titulo" value="{{livro.titulo}}" required>
@@ -30,7 +30,7 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Editar</button>
-                <button type="button" class="btn btn-danger">Deletar</button>
+                <button onclick="window.location.href='/livros/deletar/{{livro.id}}'" type="button" class="btn btn-danger">Deletar</button>
             </form>
         </div>
     </div>

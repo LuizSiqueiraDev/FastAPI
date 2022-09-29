@@ -20,14 +20,25 @@
 
                 <tbody>
                     {% for livro in livros %}
+                    {% if livro.lido == False %}
                     <tr class="pointer">
                         <td>{{ loop.index }}</td>
                         <td>{{ livro.titulo }}</td>
                         <td>
-                            <button type="button" class="btn btn-success">Lido</button>
+                            <button onclick="window.location.href='lido/{{livro.id}}'" type="button" class="btn btn-success">Não Lido</button>
                             <button onclick="window.location.href='editar-livro/{{livro.id}}'" type="button" class="btn btn-info">Editar</button>
                         </td>
                     </tr>
+                    {% else %}
+                    <tr class="pointer">
+                        <td>{{ loop.index }}</td>
+                        <td class="strike-line">{{ livro.titulo }}</td>
+                        <td>
+                            <button onclick="window.location.href='lido/{{livro.id}}'" type="button" class="btn btn-success">Lido</button>
+                            <button onclick="window.location.href='editar-livro/{{livro.id}}'" type="button" class="btn btn-info">Editar</button>
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
