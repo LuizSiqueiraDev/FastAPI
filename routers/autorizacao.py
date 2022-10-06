@@ -2,7 +2,7 @@ import sys
 sys.path.append(".. ")
 
 from starlette.responses import RedirectResponse
-from fastapi import Depends, HTTPException, status, APIRouter, Request, Response
+from fastapi import Depends, HTTPException, status, APIRouter, Request, Response, Form
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -92,13 +92,16 @@ def criar_acesso_token(apelido: str, usuario_id: int, expirar_delta: timedelta|N
     return jwt.encode(codificar, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def obter_usuario_atual(token: str = Depends(oauth2_bearer)):
+async def obter_usuario_atual(request: Request):
     try:
+        token = request.cookies.get("criar_acesso_token")
+        if token is None:
+            return None
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         apelido: str = payload.get("sub")
         usuario_id: int = payload.get("id")
         if apelido is None or usuario_id is None:
-            raise obter_excecao_do_usuario()
+            return None
         return {"apelido": apelido, "id": usuario_id}
     except JWTError:
         raise obter_excecao_do_usuario() 
@@ -158,9 +161,46 @@ async def login(request: Request, db: Session = Depends(obter_db)):
         mensagem = "Erro desconhecido"
         return templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
 
+
+@router.get("/logout")
+async def logout(request: Request):
+    mensagem = "Logout realizado com sucesso"
+    response = templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
+    response.delete_cookie(key="criar_acesso_token")
+    return response
+
+
 @router.get("/registrar", response_class=HTMLResponse)
 async def registrar(request: Request):
     return templates.TemplateResponse("registrar.html", {"request": request})
+
+
+@router.post("/registrar", response_class=HTMLResponse)
+async def registrar_usuario(request: Request, email: str = Form(), apelido: str = Form(), nome: str = Form(), sobrenome: str = Form(), 
+                                senha: str = Form(), senha2: str = Form(), db: Session = Depends(obter_db)):
+    
+    validacao1 = db.query(models.Usuarios).filter(models.Usuarios.apelido == apelido).first()
+    
+    validacao2 = db.query(models.Usuarios).filter(models.Usuarios.email == email).first()
+
+    if senha != senha2 or validacao1 is not None or validacao2 is not None:
+        mensagem = "Requisição de registro inválida!"
+        return templates.TemplateResponse("registrar.html", {"request": request, "mensagem": mensagem})
+
+    modelo = models.Usuarios()
+    modelo.apelido = apelido
+    modelo.email = email
+    modelo.nome = nome
+    modelo.sobrenome = sobrenome
+    senha_hash = obter_senha_hash(senha)
+    modelo.senha_hashed = senha_hash
+    modelo.ativo = True
+
+    db.add(modelo)
+    db.commit()
+
+    mensagem = "Registro cruado com sucesso!"
+    return templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
 
 
 #Exeções

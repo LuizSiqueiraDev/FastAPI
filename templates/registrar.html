@@ -6,7 +6,13 @@
             Registrar
         </div>
         <div class="card-body">
-            <form>
+            {% if mensagem %}
+            <div class="alert alert-success" role="alert">
+                {{ mensagem }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/autorizacao/registrar">
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label>Apelido</label>
@@ -39,7 +45,7 @@
             </form>
         </div>
         <div class="card-footer text-muted">
-            <a href="#">Já tenho uma conta!</a>
+            <a href="/autorizacao">Já tenho uma conta!</a>
         </div>
     </div>
 </div>
