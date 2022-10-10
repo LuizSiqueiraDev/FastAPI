@@ -1,12 +1,12 @@
 import sys
 sys.path.append("...")
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 import models
 from sqlalchemy.orm import Session
 from database import engine, SessionLocal
 from pydantic import BaseModel
-from .autorizacao import obter_usuario_atual, obter_excecao_do_usuario
+from .autorizacao import obter_usuario_atual
 
 router = APIRouter(
     prefix="/enderecos",
@@ -36,7 +36,7 @@ class Endereco(BaseModel):
 @router.post("/")
 async def adicionar_endereco(endereco: Endereco, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
     if usuario is None:
-        raise obter_excecao_do_usuario()
+        raise HTTPException(status_code=404, detail="Não encontrado.")
     
     modelo = models.Enderecos()
     modelo.endereco1 = endereco.endereco1

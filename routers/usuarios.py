@@ -1,17 +1,26 @@
-from fastapi import APIRouter, Depends
+import sys
+sys.path.append("..")
+
+from starlette import status
+from starlette.responses import RedirectResponse
+from fastapi import Depends, APIRouter, Request, Form
+import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-import models
-from .autorizacao import obter_excecao_do_usuario, obter_usuario_atual, verificar_senha, obter_senha_hash
+from .autorizacao import obter_usuario_atual, verificar_senha, obter_senha_hash
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(
     prefix="/usuarios",
     tags=["Usuários"],
-    responses={404: {"descrição": "Não encontrado"}}
+    responses={404: {"descrição": "Não encontrado."}}
 )
 
 models.Base.metadata.create_all(bind=engine)
+
+templates = Jinja2Templates(directory="templates")
 
 def obter_db():
     try:
@@ -21,52 +30,37 @@ def obter_db():
         db.close()
 
 
-class VerificacaoDoUsuario(BaseModel):
+class VerificarUsuario(BaseModel):
     apelido: str
     senha: str
     nova_senha: str
 
 
-@router.get("/")
-async def mostrar_usuarios(db: Session = Depends(obter_db)):
-    return db.query(models.Usuarios).all()
-
-
-@router.get("/{usuario_id}")
-async def pesquisar_usuario(usuario_id: int, db: Session = Depends(obter_db)):
-    modelo = db.query(models.Usuarios).filter(models.Usuarios.id == usuario_id).first()
-
-    if modelo is not None:
-        return modelo
-    return "ID do usuário inválido!"
-
-
-@router.put("/senha")
-async def mudar_senha(verificacao_do_usuario: VerificacaoDoUsuario, usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
+@router.get("/editar-senha", response_class=HTMLResponse)
+async def editar_usuario(request: Request):
+    usuario = await obter_usuario_atual(request)
     if usuario is None:
-        raise obter_excecao_do_usuario()
+        return RedirectResponse(url="/autorizacao", status_code=status.HTTP_302_FOUND)
     
-    modelo = db.query(models.Usuarios).filter(models.Usuarios.id == usuario.get("id")).first()
+    return templates.TemplateResponse("editar-usuario-senha.html", {"request": request, "usuario": usuario})
 
-    if modelo is not None:
-        if verificacao_do_usuario.apelido == modelo.apelido and verificar_senha(verificacao_do_usuario.senha, modelo.senha_hashed):
-            modelo.senha_hashed = obter_senha_hash(verificacao_do_usuario.nova_senha)
-            db.add(modelo)
+
+@router.post("/editar-senha", response_class=HTMLResponse)
+async def trocar_senha(request: Request, apelido: str = Form(), senha1: str = Form(), senha2: str = Form(), db: Session = Depends(obter_db)):
+    usuario = await obter_usuario_atual(request)
+
+    if usuario is None:
+        return RedirectResponse(url="/autorizacao", status_code=status.HTTP_302_FOUND)
+    
+    dados_usuario = db.query(models.Usuarios).filter(models.Usuarios.apelido == apelido).first()
+
+    mensagem = "Usuario ou senha inválido."
+
+    if dados_usuario is not None:
+        if apelido == dados_usuario.apelido and verificar_senha(senha1, dados_usuario.senha_hashed):
+            dados_usuario.senha_hashed = obter_senha_hash(senha2)
+            db.add(dados_usuario)
             db.commit()
-            return "Sucesso"
-    return "Usuário ou requisição inválida"
+            mensagem = "Senha atualizada."
 
-
-@router.delete("/deletar")
-async def deletar_usuario(usuario: dict = Depends(obter_usuario_atual), db: Session = Depends(obter_db)):
-    if usuario is None:
-        raise obter_excecao_do_usuario()
-    
-    modelo = db.query(models.Usuarios).filter(models.Usuarios.id == usuario.get("id")).first()
-
-    if modelo is None:
-        return "Usuario ou requisição inválida"
-
-    db.query(models.Usuarios).filter(models.Usuarios.id == usuario.get("id")).delete()
-    db.commit()
-    return "Deletado com sucesso"    
+        return templates.TemplateResponse("editar-usuario-senha.html", {"request": request, "usuario": usuario, "mensagem": mensagem})

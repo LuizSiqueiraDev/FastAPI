@@ -3,7 +3,6 @@ sys.path.append(".. ")
 
 from starlette.responses import RedirectResponse
 from fastapi import Depends, HTTPException, status, APIRouter, Request, Response, Form
-from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
@@ -18,16 +17,6 @@ SECRET_KEY = "klgh6azydegwd288to79i3vtht8wp7"
 ALGORITHM = "HS256"
 
 templates = Jinja2Templates(directory="templates")
-
-
-class CriarUsuario(BaseModel):
-    apelido: str
-    email: str|None = None
-    nome: str
-    sobrenome: str
-    senha: str
-    telefone: str|None
-
 
 router = APIRouter(
     prefix="/autorizacao",
@@ -101,28 +90,10 @@ async def obter_usuario_atual(request: Request):
         apelido: str = payload.get("sub")
         usuario_id: int = payload.get("id")
         if apelido is None or usuario_id is None:
-            return None
+            logout(request)
         return {"apelido": apelido, "id": usuario_id}
     except JWTError:
-        raise obter_excecao_do_usuario() 
-
-
-@router.post("/criar/usuario")
-async def criar_usuario(criar_usuario: CriarUsuario, db: Session = Depends(obter_db)):
-    modelo = models.Usuarios()
-    modelo.email = criar_usuario.email
-    modelo.apelido = criar_usuario.apelido
-    modelo.nome = criar_usuario.nome
-    modelo.sobrenome = criar_usuario.sobrenome
-    modelo.telefone = criar_usuario.telefone
-
-    senha_hash = obter_senha_hash(criar_usuario.senha)
-    modelo.senha_hashed = senha_hash
-    
-    modelo.ativo = True
-
-    db.add(modelo)
-    db.commit()
+        raise HTTPException(status_code=404, detail="Não encontrado.")
 
 
 @router.post("/token")
@@ -201,23 +172,3 @@ async def registrar_usuario(request: Request, email: str = Form(), apelido: str 
 
     mensagem = "Registro cruado com sucesso!"
     return templates.TemplateResponse("login.html", {"request": request, "mensagem": mensagem})
-
-
-#Exeções
-
-def obter_excecao_do_usuario():
-    excecao_de_credencial = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Não foi possível validar as credenciais.",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    return excecao_de_credencial
-
-
-def token_de_excecao():
-    resposta_de_token_de_excecao = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Usuário ou senha incorreto",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    return resposta_de_token_de_excecao

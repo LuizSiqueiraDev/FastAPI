@@ -1,0 +1,40 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Alterar a senha!
+        </div>
+        <div class="card-body">
+            {% if mensagem %}
+                {% if mensagem == 'Senha alterada' %}
+                <div class="alert alert-success" role="alert">
+                    {{ mensagem }}
+                </div>
+                {% else %}
+                <div class="alert alert-danger" role="alert">
+                    {{ mensagem }}
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <form method="POST" action="/usuarios/editar-senha">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Usuário</label>
+                        <input type="text" class="form-control" name="apelido" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" class="form-control" name="senha1" required>
+                </div>
+                <div class="form-group">
+                    <label>Nova Senha</label>
+                    <input type="password" class="form-control" name="senha2" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Editar</button>
+            </form>
+        </div>
+    </div>
+</div>
