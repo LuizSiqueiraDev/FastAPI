@@ -1,0 +1,47 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card text-center">
+        <div class="card-header">
+            <h3>Endereço</h3>
+        </div>
+            <table class="table table-hover">
+                <tbody>
+                    <tr class="pointer">
+                        <div class="form-group">
+                            <label>1º Endereço</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.endereco1}}">
+                        </div>
+                        <div class="form-group">
+                            <label>2º Endereço</label>
+                            <input type="text" class="form-control" name="endereco2" value="{{enderecos.endereco2}}">
+                        </div>
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.cidade}}">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.estado}}">
+                        </div>
+                        <div class="form-group">
+                            <label>País</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.pais}}">
+                        </div>
+                        <div class="form-group">
+                            <label>Código Postal</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.codigo_postal}}">
+                        </div>
+                        <div class="form-group">
+                            <label>Número Residencial</label>
+                            <input type="text" class="form-control" name="endereco1" value="{{enderecos.num_residencial}}">
+                        </div>
+                        <div>
+                            <button onclick="window.location.href='editar-endereco/{{enderecos.id}}'" type="button" class="btn btn-info">Editar</button>
+                            <button onclick="window.location.href='endereco/deletar/{{enderecos.id}}'" type="button" class="btn btn-danger">Deletar</button>
+                        </div>
+                    </tr>
+                </tbody>
+            </table>         
+    </div>
+</div>

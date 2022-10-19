@@ -1,4 +1,5 @@
 import sys
+from urllib import response
 sys.path.append("..")
 
 from starlette import status
@@ -63,4 +64,4 @@ async def trocar_senha(request: Request, apelido: str = Form(), senha1: str = Fo
             db.commit()
             mensagem = "Senha atualizada."
 
-        return templates.TemplateResponse("editar-usuario-senha.html", {"request": request, "usuario": usuario, "mensagem": mensagem})
+        return templates.TemplateResponse("editar-usuario-senha.html", {"request": request, "usuario": usuario, "mensagem": mensagem})  
